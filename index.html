@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Lottery</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at center,#252525 0%,#050505 75%);color:#fff;font-family:Arial,Helvetica,sans-serif}
+.container{width:92%;max-width:900px;margin:40px auto;text-align:center}
+h1{font-size:48px;letter-spacing:5px;margin:0 0 8px}
+.subtitle{color:#999;margin-bottom:30px}
+.entry-panel{background:linear-gradient(145deg,#181818,#0b0b0b);border:1px solid #333;border-radius:18px;overflow:hidden;box-shadow:0 10px 35px rgba(0,0,0,.45)}
+.entry-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px}
+.entry-info{text-align:left}.entry-title{font-size:19px;font-weight:bold}.entry-count{color:#888;font-size:14px;margin-top:4px}
+.toggle-button{background:#333;color:#fff;border:0;border-radius:8px;padding:9px 15px;cursor:pointer;font-weight:bold}.toggle-button:hover{background:#444}
+.entry-content{padding:0 22px 22px;display:block}.entry-content.collapsed{display:none}
+textarea{width:100%;height:330px;resize:vertical;padding:18px;background:#0e0e0e;color:#fff;border:2px solid #333;border-radius:12px;outline:none;font-size:18px;line-height:1.65;font-family:Consolas,monospace;text-transform:uppercase}
+textarea:focus{border-color:#777;box-shadow:0 0 20px rgba(255,255,255,.08)}textarea::placeholder{color:#555}
+.buttons{margin-top:22px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+button{border:none;border-radius:50px;padding:15px 28px;font-size:16px;font-weight:bold;cursor:pointer;transition:.2s}button:hover{transform:scale(1.04)}
+.draw-button{background:#fff;color:#000;padding:18px 55px;font-size:20px;letter-spacing:2px}.clear-button{background:#333;color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.lottery-area{margin-top:50px}.lottery-label{color:#888;font-size:16px;margin-bottom:15px;letter-spacing:2px}
+.winner{min-height:150px;display:flex;align-items:center;justify-content:center;padding:25px;background:linear-gradient(145deg,#191919,#070707);border:2px solid #333;border-radius:22px;font-size:65px;font-weight:bold;letter-spacing:14px;overflow-wrap:anywhere;box-shadow:0 15px 40px rgba(0,0,0,.5)}
+.status{margin-top:18px;color:#888;font-size:15px}.scrambling{animation:shake .1s infinite}
+@keyframes shake{0%{transform:translateX(-4px)}50%{transform:translateX(4px)}100%{transform:translateX(-4px)}}
+.reveal{animation:reveal .5s ease-out}@keyframes reveal{0%{transform:scale(1.6);opacity:0;filter:blur(12px)}60%{transform:scale(.95);opacity:1;filter:blur(0)}100%{transform:scale(1)}}
+.winner-final{animation:winnerFlash 1s ease-in-out}@keyframes winnerFlash{0%{transform:scale(1)}40%{transform:scale(1.08)}70%{transform:scale(.98)}100%{transform:scale(1)}}
+@media(max-width:600px){h1{font-size:32px}.winner{font-size:36px;letter-spacing:7px;min-height:120px}textarea{height:280px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎰 CODE LOTTERY</h1>
+<div class="subtitle">Paste your codes below — one code per line<br>Enter as many codes as you want.</div>
+<div class="entry-panel">
+<div class="entry-header">
+<div class="entry-info"><div class="entry-title">🎟️ LOTTERY ENTRIES</div><div class="entry-count" id="entryCount">0 codes entered</div></div>
+<button type="button" class="toggle-button" id="toggleButton" onclick="toggleEntry()">▲ COLLAPSE</button>
+</div>
+<div class="entry-content" id="entryContent">
+<textarea id="codeInput" placeholder="Paste your codes here. One code per line.
+
+Example:
+L60X
+D5LV
+3HPR
+2Y6H
+Q53T
+KPTU
+N6I9
+SDJ9
+L0UF
+7FD5" oninput="updateCount()"></textarea>
+</div>
+</div>
+<div class="buttons">
+<button class="draw-button" id="drawButton" onclick="drawLottery()">🎲 DRAW WINNER</button>
+<button class="clear-button" onclick="clearAll()">🗑 CLEAR</button>
+</div>
+<div class="lottery-area">
+<div class="lottery-label">🏆 WINNING CODE</div>
+<div class="winner" id="winner">???</div>
+<div class="status" id="status">Ready for the draw...</div>
+</div>
+</div>
+<script>
+let isDrawing=false;
+function getCodes(){return document.getElementById("codeInput").value.split(/\r?\n/).map(code=>code.trim()).filter(code=>code.length>0)}
+function updateCount(){const count=getCodes().length;document.getElementById("entryCount").textContent=count===1?"1 code entered":count+" codes entered"}
+function toggleEntry(){const content=document.getElementById("entryContent");const button=document.getElementById("toggleButton");const collapsed=content.classList.toggle("collapsed");button.textContent=collapsed?"▼ EXPAND":"▲ COLLAPSE"}
+function randomCharacter(){const characters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";return characters[Math.floor(Math.random()*characters.length)]}
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+async function drawLottery(){if(isDrawing)return;const codes=getCodes();if(codes.length===0){alert("Please paste at least one code.");return}isDrawing=true;const button=document.getElementById("drawButton");const winnerDisplay=document.getElementById("winner");const status=document.getElementById("status");button.disabled=true;status.textContent="🎰 Drawing...";winnerDisplay.classList.remove("winner-final");const winningCode=codes[Math.floor(Math.random()*codes.length)].toUpperCase();winnerDisplay.classList.add("scrambling");for(let i=0;i<35;i++){let fakeCode="";for(let j=0;j<winningCode.length;j++)fakeCode+=randomCharacter();winnerDisplay.textContent=fakeCode;await wait(60)}winnerDisplay.classList.remove("scrambling");winnerDisplay.textContent="";let revealed="";for(let i=0;i<winningCode.length;i++){revealed+=winningCode[i];winnerDisplay.textContent=revealed;winnerDisplay.classList.remove("reveal");void winnerDisplay.offsetWidth;winnerDisplay.classList.add("reveal");await wait(650)}await wait(300);winnerDisplay.classList.add("winner-final");status.textContent="🎉 WINNER SELECTED!";isDrawing=false;button.disabled=false}
+function clearAll(){if(isDrawing)return;document.getElementById("codeInput").value="";document.getElementById("winner").textContent="???";document.getElementById("status").textContent="Ready for the draw...";updateCount()}
+updateCount();
+</script>
+</body>
+</html>
